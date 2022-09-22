@@ -1,0 +1,28 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+override_dh_auto_configure:
+	cp -rf /usr/share/aclocal/intltool.m4 m4/intltool.m4
+	dh_auto_configure -- \
+		--disable-silent-rules \
+		--prefix=/usr \
+		--libdir=\$${prefix}/lib/$(DEB_HOST_MULTIARCH) \
+		GVIEWENCODER_CFLAGS="-D_FILE_OFFSET_BITS=64" \
+		--disable-debian-menu
+
+override_dh_install:
+	rm -rf debian/tmp/usr/share/doc/guvcview/NEWS \
+		debian/tmp/usr/share/doc/guvcview/COPYING \
+		debian/tmp/usr/share/doc/guvcview/INSTALL \
+		debian/tmp/usr/share/doc/guvcview/ChangeLog
+
+	mkdir -p debian/tmp/usr/share/metainfo
+	mv debian/tmp/usr/share/appdata/guvcview.appdata.xml \
+			debian/tmp/usr/share/metainfo/org.guvcview.guvcview.appdata.xml
+	rm -rf debian/tmp/usr/share/appdata
+
+	dh_install
+
+override_dh_auto_test:
+

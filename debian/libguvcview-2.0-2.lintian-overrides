@@ -1,0 +1,5 @@
+libguvcview-2.0-2: package-name-doesnt-match-sonames libgviewaudio-2.0-2 libgviewencoder-2.0-2 libgviewrender-2.0-2 libgviewv4l2core-2.0-2
+libguvcview-2.0-2: dev-pkg-without-shlib-symlink usr/lib/x86_64-linux-gnu/libgviewencoder-2.0.so.2.0.0 usr/lib/x86_64-linux-gnu/libgviewencoder-2.0.so
+libguvcview-2.0-2: dev-pkg-without-shlib-symlink usr/lib/x86_64-linux-gnu/libgviewv4l2core-2.0.so.2.0.0 usr/lib/x86_64-linux-gnu/libgviewv4l2core-2.0.so
+libguvcview-2.0-2: dev-pkg-without-shlib-symlink usr/lib/x86_64-linux-gnu/libgviewaudio-2.0.so.2.0.0 usr/lib/x86_64-linux-gnu/libgviewaudio-2.0.so
+libguvcview-2.0-2: dev-pkg-without-shlib-symlink usr/lib/x86_64-linux-gnu/libgviewrender-2.0.so.2.0.0 usr/lib/x86_64-linux-gnu/libgviewrender-2.0.so
