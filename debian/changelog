@@ -1,3 +1,9 @@
+guvcview (2.0.6.1-deepin1) unstable; urgency=medium
+
+  * Fix build on RISC-V
+
+ -- Gui-Yue <yuemeng.gui@gmail.com>  Mon, 21 Nov 2022 09:43:28 +0000
+
 guvcview (2.0.6+debian-1) unstable; urgency=medium
 
   * New upstream release.
