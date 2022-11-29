@@ -41,7 +41,7 @@
 #include "core_time.h"
 #include "gviewaudio.h"
 
-extern int verbosity;
+extern int audio_verbosity;
 
 static int sample_index = 0;
 
@@ -74,13 +74,13 @@ static int recordCallback (
 
 	/*asserts*/
 	assert(audio_ctx != NULL);
-	
+
 	if(audio_ctx->channels == 0)
 	{
 		fprintf(stderr, "AUDIO: (portaudio) recordCallback failed: channels = 0\n");
 		return (paContinue);
 	}
-	
+
 	if(audio_ctx->samprate == 0)
 	{
 		fprintf(stderr, "AUDIO: (portaudio) recordCallback failed: samprate = 0\n");
@@ -115,7 +115,6 @@ static int recordCallback (
 		{
 			capture_buff[sample_index] = 0;
 			sample_index++;
-
 			if(sample_index >= audio_ctx->capture_buff_size)
 			{
 				audio_fill_buffer(audio_ctx, audio_ctx->last_ts);
@@ -123,7 +122,7 @@ static int recordCallback (
 			}
 		}
 
-		if(verbosity > 1)
+		if(audio_verbosity > 1)
 			printf("AUDIO: compensate overflow with %i silence samples\n", n_samples);
 	}
 	if(statusFlags & paInputUnderflow)
@@ -138,10 +137,9 @@ static int recordCallback (
 	int chan = 0;
 	/*store capture samples*/
 	for( i = 0; i < numSamples; ++i )
-    {
-        capture_buff[sample_index] = inputBuffer ? *rptr++ : 0;
-        sample_index++;
-
+	{
+		capture_buff[sample_index] = inputBuffer ? *rptr++ : 0;
+		
 		/*store peak value*/
 		if(audio_ctx->capture_buff_level[chan] < capture_buff[sample_index])
 			audio_ctx->capture_buff_level[chan] = capture_buff[sample_index];
@@ -149,7 +147,10 @@ static int recordCallback (
 		if(chan >= audio_ctx->channels)
 			chan = 0;
 
-        if(sample_index >= audio_ctx->capture_buff_size)
+		
+		sample_index++;
+		
+		if(sample_index >= audio_ctx->capture_buff_size)
 		{
 			buff_ts = ts + ( i / audio_ctx->channels ) * frame_length;
 
@@ -184,7 +185,7 @@ static int audio_portaudio_list_devices(audio_context_t *audio_ctx)
 {
 	/*asserts*/
 	assert(audio_ctx != NULL);
-	
+
 	int numDevices;
 	const PaDeviceInfo *deviceInfo;
 
@@ -204,7 +205,7 @@ static int audio_portaudio_list_devices(audio_context_t *audio_ctx)
 		for( it=0; it < numDevices; it++ )
 		{
 			deviceInfo = Pa_GetDeviceInfo( it );
-			if (verbosity > 0)
+			if (audio_verbosity > 0)
 				printf( "--------------------------------------- device #%d\n", it );
 			/* Mark audio_ctx and API specific default devices*/
 			int defaultDisplayed = 0;
@@ -212,7 +213,7 @@ static int audio_portaudio_list_devices(audio_context_t *audio_ctx)
 			/* with pulse, ALSA is now listed first and doesn't set a API default- 11-2009*/
 			if( it == Pa_GetDefaultInputDevice() )
 			{
-				if (verbosity > 0)
+				if (audio_verbosity > 0)
 					printf( "[ Default Input" );
 				defaultDisplayed = 1;
 				audio_ctx->device = audio_ctx->num_input_dev;/*default index in array of input devs*/
@@ -220,14 +221,14 @@ static int audio_portaudio_list_devices(audio_context_t *audio_ctx)
 			else if( it == Pa_GetHostApiInfo( deviceInfo->hostApi )->defaultInputDevice )
 			{
 				const PaHostApiInfo *hostInfo = Pa_GetHostApiInfo( deviceInfo->hostApi );
-				if (verbosity > 0)
+				if (audio_verbosity > 0)
 					printf( "[ Default %s Input", hostInfo->name );
 				defaultDisplayed = 2;
 			}
 			/* OUTPUT device doesn't matter for capture*/
 			if( it == Pa_GetDefaultOutputDevice() )
 			{
-			 	if (verbosity > 0)
+			 	if (audio_verbosity > 0)
 				{
 					printf( (defaultDisplayed ? "," : "[") );
 					printf( " Default Output" );
@@ -237,7 +238,7 @@ static int audio_portaudio_list_devices(audio_context_t *audio_ctx)
 			else if( it == Pa_GetHostApiInfo( deviceInfo->hostApi )->defaultOutputDevice )
 			{
 				const PaHostApiInfo *hostInfo = Pa_GetHostApiInfo( deviceInfo->hostApi );
-				if (verbosity > 0)
+				if (audio_verbosity > 0)
 				{
 					printf( (defaultDisplayed ? "," : "[") );
 					printf( " Default %s Output", hostInfo->name );/* OSS ALSA etc*/
@@ -246,11 +247,11 @@ static int audio_portaudio_list_devices(audio_context_t *audio_ctx)
 			}
 
 			if( defaultDisplayed!=0 )
-				if (verbosity > 0)
+				if (audio_verbosity > 0)
 					printf( " ]\n" );
 
 			/* print device info fields */
-			if (verbosity > 0)
+			if (audio_verbosity > 0)
 			{
 				printf( "Name                     = %s\n", deviceInfo->name );
 				printf( "Host API                 = %s\n",  Pa_GetHostApiInfo( deviceInfo->hostApi )->name );
@@ -276,7 +277,7 @@ static int audio_portaudio_list_devices(audio_context_t *audio_ctx)
 				audio_ctx->list_devices[audio_ctx->num_input_dev-1].high_latency = (double) deviceInfo->defaultHighInputLatency;
 				audio_ctx->list_devices[audio_ctx->num_input_dev-1].low_latency = (double) deviceInfo->defaultLowInputLatency;
 			}
-			if (verbosity > 0)
+			if (audio_verbosity > 0)
 			{
 				printf( ", Max outputs = %d\n", deviceInfo->maxOutputChannels  );
 				printf( "Def. low input latency   = %8.3f\n", deviceInfo->defaultLowInputLatency  );
@@ -288,8 +289,14 @@ static int audio_portaudio_list_devices(audio_context_t *audio_ctx)
 
 		}
 
-		if (verbosity > 0)
+		if (audio_verbosity > 0)
 			printf("----------------------------------------------\n");
+	}
+
+	if (audio_ctx->num_input_dev <= 0)
+	{
+		printf( "AUDIO: Audio disabled: no input devices found (%i)\n", audio_ctx->num_input_dev );
+		return -1;
 	}
 
 	/*set defaults*/
@@ -313,7 +320,7 @@ int audio_init_portaudio(audio_context_t* audio_ctx)
 {
 	/*assertions*/
 	assert(audio_ctx != NULL);
-	
+
 	int pa_error = Pa_Initialize();
 
 	if(pa_error != paNoError)
@@ -348,17 +355,17 @@ void audio_set_portaudio_device(audio_context_t *audio_ctx, int index)
 {
 	/*assertions*/
 	assert(audio_ctx != NULL);
-	
+
 	if(index >= audio_ctx->num_input_dev)
 		audio_ctx->device = audio_ctx->num_input_dev - 1;
 	else if(index >= 0 )
 		audio_ctx->device = index;
 
-	if(verbosity > 1)
+	if(audio_verbosity > 1)
 		printf("AUDIO: Portaudio device changed to %i\n", audio_ctx->device);
-	 
+
 	audio_ctx->latency = audio_ctx->list_devices[audio_ctx->device].high_latency;
-	
+
 	audio_ctx->channels = audio_ctx->list_devices[audio_ctx->device].channels;
 	if(audio_ctx->channels > 2)
 		audio_ctx->channels = 2;/*limit it to stereo input*/
@@ -399,7 +406,7 @@ int audio_start_portaudio(audio_context_t *audio_ctx)
 	inputParameters.device = audio_ctx->list_devices[audio_ctx->device].id;
 	inputParameters.channelCount = audio_ctx->channels;
 	inputParameters.sampleFormat = paFloat32; /*sample_t - float*/
-	
+
 	inputParameters.suggestedLatency = audio_ctx->latency; /*DEFAULT_LATENCY_DURATION/1000.0;*/
 	
 	inputParameters.hostApiSpecificStreamInfo = NULL;
@@ -427,7 +434,7 @@ int audio_start_portaudio(audio_context_t *audio_ctx)
 
 	if( err != paNoError )
 	{
-		fprintf(stderr, "AUDIO: An error occured while starting the portaudio API\n" );
+		fprintf(stderr, "AUDIO: An error occurred while starting the portaudio API\n" );
 		fprintf(stderr, "       Error number: %d\n", err );
 		fprintf(stderr, "       Error message: %s\n", Pa_GetErrorText( err ) );
 
@@ -438,7 +445,7 @@ int audio_start_portaudio(audio_context_t *audio_ctx)
 	}
 
 	const PaStreamInfo* stream_info = Pa_GetStreamInfo (stream);
-	if(verbosity > 1)
+	if(audio_verbosity > 1)
 		printf("AUDIO: latency of %8.3f msec\n", 1000 * stream_info->inputLatency);
 
 	return 0;

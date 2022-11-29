@@ -23,6 +23,7 @@
 
 /* support for internationalization - i18n */
 #include <inttypes.h>
+#include <libavcodec/avcodec.h>
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -46,7 +47,7 @@ extern int verbosity;
 
 typedef struct _h264_decoder_context_t
 {
-	AVCodec *codec;
+	const AVCodec *codec;
 	AVCodecContext *context;
 	AVFrame *picture;
 
@@ -1000,8 +1001,9 @@ int h264_init_decoder(int width, int height)
 		h264_ctx = NULL;
 		return E_NO_CODEC;
 	}
-
-#if LIBAVCODEC_VER_AT_LEAST(53,6)
+#if LIBAVCODEC_VER_AT_LEAST(57, 107)
+	h264_ctx->context = avcodec_alloc_context3(h264_ctx->codec);
+#elif LIBAVCODEC_VER_AT_LEAST(53,6)
 	h264_ctx->context = avcodec_alloc_context3(h264_ctx->codec);
 	avcodec_get_context_defaults3 (h264_ctx->context, h264_ctx->codec);
 #else
@@ -1077,15 +1079,30 @@ int h264_decode(uint8_t *out_buf, uint8_t *in_buf, int size)
 	assert(in_buf != NULL);
 	assert(out_buf != NULL);
 
+	int got_frame = 0;
+
+#if LIBAVCODEC_VER_AT_LEAST(58,129)
+	AVPacket *avpkt = av_packet_alloc();
+	if (!avpkt) 
+	{
+        fprintf(stderr, "V4L2_CORE uvc_H264: could not allocate av_packet\n");
+        return -1;
+    }
+
+	avpkt->size = size;
+	avpkt->data = in_buf;
+
+	int ret = libav_decode(h264_ctx->context, h264_ctx->picture, &got_frame, avpkt);
+
+	av_packet_free(&avpkt);
+#else
 	AVPacket avpkt;
-
 	av_init_packet(&avpkt);
-
 	avpkt.size = size;
 	avpkt.data = in_buf;
 
-	int got_frame = 0;
 	int ret = libav_decode(h264_ctx->context, h264_ctx->picture, &got_frame, &avpkt);
+#endif
 
 	if(ret < 0)
 	{

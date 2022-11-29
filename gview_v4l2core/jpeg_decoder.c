@@ -1350,7 +1350,7 @@ void jpeg_close_decoder()
 
 typedef struct _codec_data_t
 {
-	AVCodec *codec;
+	const AVCodec *codec;
 	AVCodecContext *context;
 	AVFrame *picture;
 } codec_data_t;
@@ -1407,7 +1407,9 @@ int jpeg_init_decoder(int width, int height)
 		return E_NO_CODEC;
 	}
 
-#if LIBAVCODEC_VER_AT_LEAST(53,6)
+#if LIBAVCODEC_VER_AT_LEAST(57, 107)
+	codec_data->context = avcodec_alloc_context3(codec_data->codec);
+#elif LIBAVCODEC_VER_AT_LEAST(53,6)
 	codec_data->context = avcodec_alloc_context3(codec_data->codec);
 	avcodec_get_context_defaults3 (codec_data->context, codec_data->codec);
 #else
@@ -1488,18 +1490,30 @@ int jpeg_decode(uint8_t *out_buf, uint8_t *in_buf, int size)
 	assert(in_buf != NULL);
 	assert(out_buf != NULL);
 
-	AVPacket avpkt;
-
-	av_init_packet(&avpkt);
-
-	avpkt.size = size;
-	avpkt.data = in_buf;
-
+	int got_frame = 0;
 	codec_data_t *codec_data = (codec_data_t *) jpeg_ctx->codec_data;
 
-	int got_frame = 0;
-	int ret = libav_decode(codec_data->context, codec_data->picture, &got_frame, &avpkt);
+#if LIBAVCODEC_VER_AT_LEAST(58,129)
+	AVPacket *avpkt = av_packet_alloc();
+	if (!avpkt) 
+	{
+        fprintf(stderr, "V4L2_CORE uvc_H264: could not allocate av_packet\n");
+        return -1;
+    }
 
+	avpkt->size = size;
+	avpkt->data = in_buf;
+
+	int ret = libav_decode(codec_data->context, codec_data->picture, &got_frame, avpkt);
+
+	av_packet_free(&avpkt);
+#else
+	AVPacket avpkt;
+	av_init_packet(&avpkt);
+	avpkt.size = size;
+	avpkt.data = in_buf;
+	int ret = libav_decode(codec_data->context, codec_data->picture, &got_frame, &avpkt);
+#endif
 	if(ret < 0)
 	{
 		fprintf(stderr, "V4L2_CORE: (jpeg decoder) error while decoding frame\n");
