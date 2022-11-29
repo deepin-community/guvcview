@@ -10,7 +10,7 @@ dnl Initialization macros (sets PACKAGE and VERSION)
 dnl --------------------------------
 m4_define([guvcview_major], [2])
 m4_define([guvcview_minor], [0])
-m4_define([guvcview_micro], [6])
+m4_define([guvcview_micro], [8])
 
 m4_define([guvcview_version],
           [guvcview_major.guvcview_minor.guvcview_micro])
@@ -59,9 +59,9 @@ AM_SANITY_CHECK
 dnl --------------------------------------------------------------------------
 dnl set pthread_libs and pthread_cflags
 dnl --------------------------------------------------------------------------
-dnl ACX_PTHREAD([ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
+dnl AX_PTHREAD([ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
 
-ACX_PTHREAD()
+AX_PTHREAD()
 
 AC_SUBST(CFLAGS)
 
@@ -107,7 +107,7 @@ AC_SUBST(GVIEWV4L2CORE_LD_NAME)
 
 #release versioning
 GVIEWV4L2CORE_CURRENT_VERSION=2
-GVIEWV4L2CORE_REVISION_VERSION=0
+GVIEWV4L2CORE_REVISION_VERSION=1
 GVIEWV4L2CORE_AGE_VERSION=0
 
 #API version (SONAME)
@@ -181,7 +181,7 @@ AC_SUBST(GVIEWRENDER_LD_NAME)
 
 #release versioning
 GVIEWRENDER_CURRENT_VERSION=2
-GVIEWRENDER_REVISION_VERSION=0
+GVIEWRENDER_REVISION_VERSION=1
 GVIEWRENDER_AGE_VERSION=0
 
 #API version (SONAME)
@@ -352,7 +352,7 @@ AC_SUBST(GVIEWENCODER_LD_NAME)
 
 #release versioning
 GVIEWENCODER_CURRENT_VERSION=2
-GVIEWENCODER_REVISION_VERSION=0
+GVIEWENCODER_REVISION_VERSION=1
 GVIEWENCODER_AGE_VERSION=0
 
 #API version (SONAME)
@@ -453,8 +453,16 @@ fi
 
 AM_CONDITIONAL(HAVE_QT5, test $enable_qt5 = yes)
 
-
 AC_CHECK_FUNCS([fpathconf dirfd])
+
+dnl --------------------------------------------------------------------------
+dnl check if shared libs were disabled
+dnl --------------------------------------------------------------------------
+
+if test $enable_shared = yes; then
+	AC_DEFINE(ENABLE_SHARED, 1, [set to 1 if shared libs are enabled])
+fi
+AM_CONDITIONAL(ENABLE_SHARED, test $enable_shared = yes)
 
 dnl --------------------------------------------------------------------------
 dnl set/unset debian menu
@@ -530,5 +538,6 @@ AC_MSG_NOTICE([
   Qt5              : ${enable_qt5}
   desktop file     : ${enable_desktop}
   debian menu      : ${enable_debian_menu}
+  shared libs      : ${enable_shared}
 
 ])

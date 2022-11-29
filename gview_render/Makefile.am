@@ -32,7 +32,7 @@ libgviewrender_la_CFLAGS = $(GVIEWRENDER_CFLAGS) \
 			-I$(top_srcdir) \
 			-I$(top_srcdir)/includes
 
-libgviewrender_la_LIBADD = $(GVIEWRENDER_LIBS) $(GSL_LIBS)
+libgviewrender_la_LIBADD = $(GVIEWRENDER_LIBS) $(GSL_LIBS) $(PTHREAD_LIBS)
 
 if ENABLE_SFML
 libgviewrender_la_CPPFLAGS = $(libgviewrender_la_CFLAGS) \

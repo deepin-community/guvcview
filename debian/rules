@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 %:
-	dh $@
+	dh $@ --exclude=.la
 
 override_dh_auto_configure:
 	cp -rf /usr/share/aclocal/intltool.m4 m4/intltool.m4
@@ -18,11 +18,9 @@ override_dh_install:
 		debian/tmp/usr/share/doc/guvcview/ChangeLog
 
 	mkdir -p debian/tmp/usr/share/metainfo
-	mv debian/tmp/usr/share/appdata/guvcview.appdata.xml \
+	mv data/guvcview.appdata.xml \
 			debian/tmp/usr/share/metainfo/org.guvcview.guvcview.appdata.xml
-	rm -rf debian/tmp/usr/share/appdata
 
 	dh_install
 
 override_dh_auto_test:
-

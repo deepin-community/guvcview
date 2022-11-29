@@ -1,8 +1,44 @@
-guvcview (2.0.6.1-deepin1) unstable; urgency=medium
+guvcview (2.0.8-1) unstable; urgency=medium
 
-  * Fix build on RISC-V
+  * New upstream release. (Closes: #1004630)
+  * Drop d/patches/update-appdata-to-new-format.
+  * d/rules:
+    - Fix path of guvcview.appdata.xml.
+  * d/control:
+    - Update package name with soname.
 
- -- Gui-Yue <yuemeng.gui@gmail.com>  Mon, 21 Nov 2022 09:43:28 +0000
+ -- Nobuhiro Iwamatsu <iwamatsu@debian.org>  Mon, 11 Jul 2022 17:57:55 +0900
+
+guvcview (2.0.7-2-1) unstable; urgency=medium
+
+  * New upstream release. (Closes: #1003148)
+  * Update d/copyright
+    - Remove the object deleted from the source.
+  * Update d/libguvcview-2.0-2.lintian-overrides
+
+ -- Nobuhiro Iwamatsu <iwamatsu@debian.org>  Sun, 30 Jan 2022 13:03:26 +0900
+
+guvcview (2.0.6+debian-2) unstable; urgency=medium
+
+  [ Debian Janitor ]
+  * Trim trailing whitespace.
+  * Set debhelper-compat version in Build-Depends.
+  * Update renamed lintian tag names in lintian overrides.
+  * Set upstream metadata fields: Repository.
+  * Make "Files: *" paragraph the first in the copyright file.
+  * Update standards version to 4.6.0, no changes needed.
+
+  [ Nobuhiro Iwamatsu ]
+  * Update d/upstream/metadata.
+    - Add Name, Repository-Browse Bug-Submit and Contact.
+  * Update d/control.
+    - Bump debhelper-compat version to 13.
+    - Add 'Rules-Requires-Root: no'.
+  * Update d/copyright.
+  * Update d/rules.
+    - Add '--exclude=.la' to dh.
+
+ -- Nobuhiro Iwamatsu <iwamatsu@debian.org>  Sun, 30 Jan 2022 08:46:10 +0900
 
 guvcview (2.0.6+debian-1) unstable; urgency=medium
 
@@ -267,4 +303,3 @@ guvcview (0.9.3-1) unstable; urgency=low
   * Add support UYVY color
 
  -- Nobuhiro Iwamatsu <iwamatsu@nigauri.org>  Sun, 14 Sep 2008 01:09:51 +0900
-
